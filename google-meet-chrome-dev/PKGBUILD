@@ -1,0 +1,19 @@
+# Maintainer: Mikkel Kroman <mk+e88d1cf072a6@maero.dk>
+
+pkgname="google-meet-chrome-dev"
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Meta package and script for launching Google Meet with google-chrome-dev'
+arch=('any')
+license=('APACHE')
+url='https://github.com/mkroman/arch-packages'
+depends=('google-chrome-dev')
+source=('google-meet.sh')
+sha256sums=('c9d7cbf33424e8b242ee680ee4fb5645855446271e14196ed1b3cd230ef7a042')
+install='hook.install'
+
+package() {
+  mkdir -p "${pkgdir}/usr/bin"
+
+  install -m755 "google-meet.sh" "${pkgdir}/usr/bin/google-meet"
+}

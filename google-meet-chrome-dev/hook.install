@@ -1,0 +1,6 @@
+post_install() {
+  echo "Depending on your configuration, you might need to force hardware acceleration in google-chrome-dev."
+  echo "For more information: https://wiki.archlinux.org/title/chromium#Force_GPU_acceleration"
+  echo
+  echo "Adding --ignore-gpu-blocklist to ~/.config/chrome-dev-flags.conf might be sufficient."
+}
