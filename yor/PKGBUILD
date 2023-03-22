@@ -1,0 +1,32 @@
+# Maintainer: Mikkel Kroman <mk@maero.dk>
+pkgname=yor
+pkgver=0.1.170
+pkgrel=1
+pkgdesc='Go PKGBUILD Example'
+arch=('x86_64' 'i686' 'armv7h' 'aarch64')
+url="https://yor.io/"
+license=('Apache')
+makedepends=('go')
+depends=('glibc')
+source=("yor-${pkgver}.tar.gz::https://github.com/bridgecrewio/yor/archive/refs/tags/${pkgver}.tar.gz")
+sha256sums=('8fd70617352ec8468361c4dc5c23d0d222e7b73af66f480d4a6f7bcc6ca76267')
+
+prepare(){
+  cd "$pkgname-$pkgver"
+  mkdir -p build/
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  export CGO_CPPFLAGS="${CPPFLAGS}"
+  export CGO_CFLAGS="${CFLAGS}"
+  export CGO_CXXFLAGS="${CXXFLAGS}"
+  export CGO_LDFLAGS="${LDFLAGS}"
+  export GOFLAGS="-buildmode=pie -trimpath -ldflags=-linkmode=external -mod=readonly -modcacherw"
+  go build -o build
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm755 build/$pkgname "$pkgdir"/usr/bin/$pkgname
+}
