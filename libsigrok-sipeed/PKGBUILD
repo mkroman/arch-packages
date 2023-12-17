@@ -1,0 +1,56 @@
+# Maintainer: Mikkel Kroman <mk@maero.dk>
+# Contributor: Filipe Laíns (FFY00) <lains@archlinux.org>
+# Contributor: Thomas Krug <t.krug@elektronenpumpe.de>
+
+pkgname=libsigrok-sipeed
+pkgver=0.5.2
+pkgrel=12
+pkgdesc='Client software that supports various hardware logic analyzers, core library, with patches for sipeed slogic'
+arch=('x86_64')
+url='https://www.sigrok.org/wiki/Libsigrok'
+provides=('libsigrok')
+conflicts=('libsigrok')
+license=('GPL3')
+depends=('libftdi' 'libserialport' 'glibmm' 'libzip' 'libieee1284' 'bluez-libs' 'hidapi' 'libudev.so')
+makedepends=('cmake' 'doxygen' 'ruby' 'jdk8-openjdk' 'swig' 'python' 'pygobject-devel' 'python-numpy' 'python-setuptools' 'autoconf-archive')
+optdepends=('python' 'ruby' 'jdk8-openjdk'
+            'sigrok-firmware-fx2lafw: Cypress FX2-based device support')
+options=(!lto) # FS#78381
+source=("https://sigrok.org/download/source/libsigrok/libsigrok-$pkgver.tar.gz"
+        "fix_swig4_java_bindings.patch"
+        "libsigrok-0.5.2-swig-4.1.patch"
+        "fix_ruby_bindings.patch::https://sigrok.org/bugzilla/attachment.cgi?id=640"
+        "https://patch-diff.githubusercontent.com/raw/sigrokproject/libsigrok/pull/212.patch")
+sha512sums=('cf673dad6280302d69050c29490621f66c6d6a73932d019a53ec3501316d3f2e23e7667a04f866dbe6ed73f86a63de73d2173e2b6cea563631d705e06f887092'
+            '0e6bdddb2dcc03d76e5d16708bb127ec8a9207fba0e04b436ac92e370618cc0b1bc9d3e2c86a0878783626f2a8b59961c3a1a52a1e180e69005e3585e5766a89'
+            '7a1e35b6b268d117e67dff55c2ff1320257525eedb7454a068732d79074b6d743036ab2c11043952738dd3990ca084782feeb15ad92a306b3b58c73ecc530154'
+            '0e5b9ed566605acac02de6f559f9029929be7ca34d9688ed35d24d66c1b014f89a16902a4de79d0a1ef6347be257f24f77ea37b880aab757b2c338497de23030'
+            'c0fdcb6b39d1e76a928116e8b31cced8b63421f551fd89729f03188da1988b94b6349b35c5d9516faadec4d7ba4071380e0b58608e049e1878250ab294bf0568')
+
+prepare() {
+  cd libsigrok-$pkgver
+  patch -p1 < ../fix_swig4_java_bindings.patch # https://sigrok.org/bugzilla/show_bug.cgi?id=1527
+  patch -p1 < ../fix_ruby_bindings.patch # https://sigrok.org/bugzilla/show_bug.cgi?id=1526
+  patch -p1 < ../libsigrok-0.5.2-swig-4.1.patch # https://sigrok.org/bugzilla/show_bug.cgi?id=1827
+  patch -p1 < ../212.patch # https://github.com/sigrokproject/libsigrok/pull/212
+
+  # regenerate ./configure so it can detect Python 3.10
+  autoreconf -vi
+}
+
+build() {
+  cd libsigrok-$pkgver
+
+  ./configure --prefix=/usr --enable-ruby
+
+  make
+}
+
+package() {
+  cd libsigrok-$pkgver
+
+  make DESTDIR="$pkgdir" PREFIX=/usr install
+
+  install -m644 -D contrib/60-libsigrok.rules "$pkgdir"/usr/lib/udev/rules.d/60-libsigrok.rules
+  install -m644 -D contrib/61-libsigrok-uaccess.rules "$pkgdir"/usr/lib/udev/rules.d/61-libsigrok-uaccess.rules
+}
