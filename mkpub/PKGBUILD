@@ -1,0 +1,36 @@
+# Maintainer: Mikkel Kroman <mk at maero.dk>
+
+pkgname=mkpub
+pkgver=0.4.0
+pkgrel=1
+pkgdesc='Heavily opinionated command-line tool for sharing files using S3'
+arch=('x86_64')
+url='https://github.com/mkroman/mkpub'
+license=('MIT')
+makedepends=('cargo')
+provides=('mkpub')
+options=('!lto' '!strip') # The release profile of the project already does these steps
+source=("$pkgname-$pkgver.tar.gz::https://github.com/mkroman/$pkgname/archive/v$pkgver.tar.gz")
+sha512sums=('1dbe946edd77ddebe98c3da126a7f5b2284c459adab8c21d4911871eb3ca1fc3661200c2bef9174a60067f65034372697ca8cc53bfc864f39f6e0a54f7a7501a')
+
+prepare() {
+  cd "$srcdir/$pkgname-$pkgver"
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd "$srcdir/$pkgname-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  cargo build --frozen --release
+}
+
+package() {
+  cd "$srcdir/$pkgname-$pkgver"
+  install -Dm755 target/release/mkpub "$pkgdir/usr/bin/mkpub"
+}
+
+check() {
+  cd "$srcdir/$pkgname-$pkgver"
+  ./target/release/mkpub --version
+}
